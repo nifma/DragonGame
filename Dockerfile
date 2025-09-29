@@ -4,8 +4,12 @@ FROM ubuntu:20.04
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Устанавливаем необходимые пакеты
+# Устанавливаем переменную окружения для non-interactive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Обновляем репозитории и устанавливаем все зависимости
 RUN apt-get update && apt-get install -y \
+    tzdata \
     build-essential \
     apache2 \
     libjsoncpp-dev \
