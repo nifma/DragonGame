@@ -1,0 +1,12 @@
+# Включаем выполнение CGI-скриптов
+Options +ExecCGI
+
+# Указываем, что файлы с расширением .cgi должны обрабатываться как CGI-скрипты
+AddHandler cgi-script .cgi
+
+# Указываем разрешения на доступ к файлам
+<Directory "/var/www/html/cgi-bin">
+    Options +ExecCGI
+    AllowOverride None
+    Require all granted
+</Directory>
