@@ -7,16 +7,24 @@ WORKDIR /app
 # Устанавливаем переменную окружения для non-interactive
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Настройка таймзоны, чтобы избежать интерактивных запросов
+RUN echo "Europe/Moscow" > /etc/timezone && \
+    apt-get update && \
+    apt-get install -y tzdata && \
+    dpkg-reconfigure -f noninteractive tzdata
+
 # Обновляем репозитории и устанавливаем все зависимости
-RUN apt-get update && apt-get install -y \
-    tzdata \
+RUN apt-get update && \
+    apt-get install -y --fix-missing \
     build-essential \
     apache2 \
     libjsoncpp-dev \
+    libjsoncpp1 \
     cmake \
     g++ \
     curl \
-    && apt-get clean
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Копируем исходники проекта в контейнер
 COPY . /app
