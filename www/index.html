@@ -8,11 +8,11 @@
     <link href="style.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-light">
-<div class="container py-5">
+<div class="container py-3">
     <div class="d-flex justify-content-end">
         <button id="restart" class="btn btn-success mb-3">Новая игра</button>
     </div>
-    <h1 class="text-center mb-5">Арифметические драконы</h1>
+    <h1 class="text-center mb-4">Арифметические драконы</h1>
 
     <div class="battlefield mb-4">
         <div class="row align-items-center justify-content-center">
@@ -21,7 +21,7 @@
                     <img id="heroImg" src="images/hero.jpg" class="card-img-top character-img" alt="Hero">
                     <div class="card-body">
                         <h5 class="card-title" id="heroName">Герой</h5>
-                        <p id="heroStatus" class="card-text">Здоровье: 35, Атака: 7</p>
+                        <p id="heroStatus" class="card-text"></p>
                     </div>
                 </div>
             </div>
@@ -32,15 +32,14 @@
                 <div id="dragonCard" class="card text-dark character-card">
                     <img id="dragonImg" src="" class="card-img-top character-img" alt="Dragon">
                     <div class="card-body">
-                        <h5 class="card-title" id="dragonName">Дракон</h5>
-                        <p id="dragonStatus" class="card-text">Здоровье: 0, Атака: 0</p>
+                        <h5 class="card-title" id="dragonName"></h5>
+                        <p id="dragonStatus" class="card-text"></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Вопрос и форма ответа -->
     <div class="mb-4">
         <div id="question" class="alert alert-info question-box" role="alert"></div>
         <form id="form">
@@ -52,13 +51,11 @@
         <div id="info" class="mt-3"></div>
     </div>
 
-    <!-- История боя -->
-    <div class="mb-4">
+    <div class="mb-4 mt-5">
         <h4>📜 История боя:</h4>
         <div id="history" class="history-box"></div>
     </div>
 
-    <!-- Эффекты -->
     <div id="celebration" class="celebration-effect"></div>
     <div id="defeat" class="defeat-effect"></div>
 </div>

@@ -4,286 +4,404 @@
 using namespace std;
 
 class Attacker {
-protected:
-    int _health;
-    int _attack;
-public:
-    Attacker(int hp, int atk) : _health(hp), _attack(atk) {}
-    virtual ~Attacker() = default;
+ public:
+  Attacker(int hp, int atk) : health_(hp), attack_(atk) {}
+  virtual ~Attacker() = default;
 
-    bool is_alive() const { return _health > 0; }
-    void hit(Attacker& target) const { target._health = max(0, target._health - _attack); }
-    int hp() const { return _health; }
-    int atk() const { return _attack; }
+  bool IsAlive() const { return health_ > 0; }
 
-    virtual bool IsEnemy() const = 0;
+  void Hit(Attacker& target) const {
+    target.health_ = max(0, target.health_ - attack_);
+  }
+
+  int hp() const { return health_; }
+  int atk() const { return attack_; }
+
+  virtual bool IsEnemy() const = 0;
+
+ protected:
+  int health_;
+  int attack_;
 };
 
 class Enemy : public Attacker {
-public:
-    using Attacker::Attacker;
-    bool IsEnemy() const final { return true; }
+ public:
+  using Attacker::Attacker;
 
-    virtual string name() const = 0;
-    virtual string color() const = 0;
-    virtual string question() = 0;
-    virtual bool check_answer(const string& answer) const = 0;
+  bool IsEnemy() const final { return true; }
+
+  virtual string GetName() const = 0;
+  virtual string GetColor() const = 0;
+  virtual string GenerateQuestion() = 0;
+  virtual bool CheckAnswer(const string& answer) const = 0;
 };
 
 class Hero : public Attacker {
-    string _name;
-    int _experience = 0;
-public:
-    Hero(string name, int hp=30, int atk=6) : Attacker(hp, atk), _name(std::move(name)) {}
-    bool IsEnemy() const override { return false; }
-    const string& name() const { return _name; }
-    int exp() const { return _experience; }
-    void add_exp(int v){ _experience += v; }
+ public:
+  Hero(string name, int hp = 30, int atk = 6)
+      : Attacker(hp, atk), name_(std::move(name)) {}
+
+  bool IsEnemy() const override { return false; }
+
+  const string& name() const { return name_; }
+  int exp() const { return experience_; }
+  void AddExp(int value) { experience_ += value; }
+
+ private:
+  string name_;
+  int experience_ = 0;
 };
 
 class Dragon : public Enemy {
-protected:
-    string _color;
-    mutable int _a, _b, _ans;
-public:
-    Dragon(string clr, int hp=15, int atk=5) : Enemy(hp, atk), _color(std::move(clr)) {}
-    string color() const override { return _color; }
-    string name() const override { return _color + " Dragon"; }
+ public:
+  Dragon(string color, int hp = 15, int atk = 5)
+      : Enemy(hp, atk), color_(std::move(color)) {}
+
+  string GetColor() const override { return color_; }
+  string GetName() const override { return color_ + " Dragon"; }
+
+ protected:
+  string color_;
+  mutable int a_, b_, answer_;
 };
 
-struct YellowDragon : public Dragon {
-    YellowDragon() : Dragon("Yellow") {}
-    string question() override {
-        _a = rand() % 5 + 1;
-        _b = rand() % 3 + 2;
-        _ans = _a * _b;
-        return "Вычислите производную функции f(x) = " + to_string(_a) + "x^" + to_string(_b);
+class YellowDragon : public Dragon {
+ public:
+  YellowDragon() : Dragon("Yellow") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 5 + 1;
+    b_ = rand() % 3 + 2;
+    answer_ = a_ * b_;
+    return "Вычислите коэффициент производной функции f(x) = " +
+           to_string(a_) + "x^" + to_string(b_);
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
     }
-    bool check_answer(const string& s) const override {
-        try { return stoi(s) == _ans; } catch(...) { return false; }
-    }
+  }
 };
 
-struct BlueDragon : public Dragon {
-    BlueDragon() : Dragon("Blue") {}
-    string question() override {
-        _a = rand() % 10 + 3;
-        _b = rand() % 4 + 2;
-        _ans = pow(_a, _b);
-        return "Вычислите " + to_string(_a) + " в степени " + to_string(_b);
+class BlueDragon : public Dragon {
+ public:
+  BlueDragon() : Dragon("Blue") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 10 + 3;
+    b_ = rand() % 4 + 2;
+    answer_ = pow(a_, b_);
+    return "Вычислите " + to_string(a_) + " в степени " + to_string(b_);
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
     }
-    bool check_answer(const string& s) const override {
-        try { return stoi(s) == _ans; } catch(...) { return false; }
-    }
+  }
 };
 
-struct PurpleDragon : public Dragon {
-    PurpleDragon() : Dragon("Purple") {}
-    string question() override {
-        _a = rand() % 50 + 1;
-        _b = rand() % 20 + 1;
-        _ans = (_a + _b) / 2;
-        return "Вычислите среднее значение между числами " + to_string(_a) + " и " + to_string(_b);
+class PurpleDragon : public Dragon {
+ public:
+  PurpleDragon() : Dragon("Purple") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 50 + 1;
+    b_ = rand() % 20 + 1;
+    answer_ = (a_ + b_) / 2;
+    return "Вычислите среднее значение между числами " + to_string(a_) +
+           " и " + to_string(b_);
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
     }
-    bool check_answer(const string& s) const override {
-        try { return stoi(s) == _ans; } catch(...) { return false; }
-    }
+  }
 };
 
-struct GreenDragon : public Dragon {
-    GreenDragon() : Dragon("Green") {}
-    string question() override {
-        _a = rand() % 20 + 5;  // от 5 до 24
-        _b = rand() % 10 + 1;  // от 1 до 10
-        _ans = _a % _b;
-        return "Найдите остаток от деления " + to_string(_a) + " на " + to_string(_b);
+class GreenDragon : public Dragon {
+ public:
+  GreenDragon() : Dragon("Green") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 20 + 5;  // от 5 до 24
+    b_ = rand() % 10 + 1;  // от 1 до 10
+    answer_ = a_ % b_;
+    return "Найдите остаток от деления " + to_string(a_) + " на " +
+           to_string(b_);
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
     }
-    bool check_answer(const string& s) const override {
-        try { return stoi(s) == _ans; } catch(...) { return false; }
-    }
+  }
 };
 
-struct RedDragon : public Dragon {
-    RedDragon() : Dragon("Red") {}
-    string question() override {
-        _a = rand() % 91 + 10; // от 10 до 100
-        _b = rand() % 21 + 5;  // от 5 до 25
-        _ans = _a - _b;
-        return "Решите уравнение: x + " + to_string(_b) + " = " + to_string(_a) + ". Найдите x";
+class RedDragon : public Dragon {
+ public:
+  RedDragon() : Dragon("Red") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 91 + 10;
+    b_ = rand() % 21 + 5;
+    answer_ = a_ - b_;
+    return "Решите уравнение: x + " + to_string(b_) + " = " + to_string(a_) +
+           ". Найдите x";
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
     }
-    bool check_answer(const string& s) const override {
-        try { return stoi(s) == _ans; } catch(...) { return false; }
-    }
+  }
 };
 
-// ========= ИГРА =========
-struct Game {
-    Hero hero{"Герой", 35, 7};
-    vector<unique_ptr<Enemy>> enemies;
-    int cur = 0;
-    string last_question;
-    string last_info;
-    string full_history;
-    bool finished = false, win = false;
+class Game {
+ public:
+  static Game& GetInstance() {
+    static Game instance;
+    return instance;
+  }
 
-    static Game& instance() { static Game g; return g; }
+  void Reset() {
+    srand(static_cast<unsigned>(time(nullptr)));
+    hero_ = Hero("Герой", 35, 7);
+    enemies_.clear();
+    current_enemy_ = 0;
+    finished_ = false;
+    win_ = false;
+    last_info_.clear();
+    full_history_.clear();
 
-    void reset() {
-        srand((unsigned)time(nullptr));
-        hero = Hero("Герой", 35, 7);
-        enemies.clear(); cur = 0; finished = false; win = false; last_info.clear(); full_history.clear();
+    vector<unique_ptr<Enemy>> all_dragons;
+    all_dragons.push_back(unique_ptr<Enemy>(new YellowDragon()));
+    all_dragons.push_back(unique_ptr<Enemy>(new BlueDragon()));
+    all_dragons.push_back(unique_ptr<Enemy>(new PurpleDragon()));
+    all_dragons.push_back(unique_ptr<Enemy>(new GreenDragon()));
+    all_dragons.push_back(unique_ptr<Enemy>(new RedDragon()));
 
-        vector<unique_ptr<Enemy>> all_dragons;
-        all_dragons.emplace_back(make_unique<YellowDragon>());
-        all_dragons.emplace_back(make_unique<BlueDragon>());
-        all_dragons.emplace_back(make_unique<PurpleDragon>());
-        all_dragons.emplace_back(make_unique<GreenDragon>());
-        all_dragons.emplace_back(make_unique<RedDragon>());
-
-        random_device rd;
-        mt19937 g(rd());
-        shuffle(all_dragons.begin(), all_dragons.end(), g);
-
-        for (int i = 0; i < min(3, static_cast<int>(all_dragons.size())); i++) {
-            enemies.push_back(move(all_dragons[i]));
-        }
-
-        ask_new();
+    // Перемешиваем драконов в случайном порядке
+    for (int i = all_dragons.size() - 1; i > 0; i--) {
+      int j = rand() % (i + 1);
+      swap(all_dragons[i], all_dragons[j]);
     }
 
-    Enemy* current() {
-        if (cur < static_cast<int>(enemies.size())) return enemies[cur].get();
-        return nullptr;
+    // Берем первых 3 драконов для игры
+    for (int i = 0; i < min(3, static_cast<int>(all_dragons.size())); i++) {
+      enemies_.push_back(move(all_dragons[i]));
     }
 
-    void ask_new() {
-        if (finished) return;
-        auto* e = current();
-        if (!e) { finished = true; win = true; last_question = "Все враги повержены!"; return; }
-        last_question = e->name() + " спрашивает: " + e->question();
-        // Добавляем вопрос в историю
-        full_history += "➤ " + last_question + "\n";
+    AskNewQuestion();
+  }
+
+  Enemy* GetCurrentEnemy() {
+    if (current_enemy_ < static_cast<int>(enemies_.size())) {
+      return enemies_[current_enemy_].get();
+    }
+    return nullptr;
+  }
+
+  void AskNewQuestion() {
+    if (finished_) return;
+    Enemy* enemy = GetCurrentEnemy();
+    if (!enemy) {
+      finished_ = true;
+      win_ = true;
+      last_question_ = "Все враги повержены!";
+      return;
+    }
+    last_question_ = enemy->GetName() + " спрашивает: " + enemy->GenerateQuestion();
+    full_history_ += "➤ " + last_question_ + "\n";
+  }
+
+  void ProcessAnswer(const string& answer) {
+    if (finished_) return;
+    Enemy* enemy = GetCurrentEnemy();
+    if (!enemy) {
+      finished_ = true;
+      win_ = true;
+      return;
     }
 
-    // В структуре Game
-    void step_answer(const string& ans) {
-        if (finished) return;
-        auto* e = current();
-        if (!e) { finished = true; win = true; return; }
-
-        // Добавляем информацию о ходе в историю
-        string action;
-        bool ok = e->check_answer(ans);
-        if (ok) {
-            hero.hit(*e);
-            hero.add_exp(5);
-            action = "✅ Верно! Герой атакует (" + to_string(hero.atk()) + ")";
-            full_history += "✅ Герой отвечает верно и атакует дракона!\n";
-            if (!e->is_alive()) {
-                action += " и побеждает врага!";
-                full_history += "🎯 Герой побеждает " + e->name() + "!\n";
-                ++cur;
-            }
-        } else {
-            e->hit(hero);
-            action = "❌ Неверно. " + e->name() + " атакует героя (" + to_string(e->atk()) + ")";
-            full_history += "❌ Неверный ответ! " + e->name() + " атакует героя!\n";
-            if (!hero.is_alive()) {
-                finished = true; win = false;
-                last_question.clear();
-                full_history += "💀 Герой пал в бою... Игра окончена.\n";
-            }
-        }
-        // Сохраняем все действия в истории
-        last_info += action + "\n";
-
-        if (!finished) ask_new();
-        else if (win) {
-            last_question = "Победа! Все враги повержены.";
-            full_history += "🎉 ПОБЕДА! Все драконы повержены! 🎉\n";
-        }
-        else last_question = "Поражение. Герой пал.";
+    string action;
+    bool is_correct = enemy->CheckAnswer(answer);
+    if (is_correct) {
+      hero_.Hit(*enemy);
+      hero_.AddExp(5);
+      action = "✅ Верно! Герой атакует (" + to_string(hero_.atk()) + ")";
+      full_history_ += "✅ Герой отвечает верно и атакует дракона!\n";
+      if (!enemy->IsAlive()) {
+        action += " и побеждает врага!";
+        full_history_ += "🎯 Герой побеждает " + enemy->GetName() + "!\n";
+        ++current_enemy_;
+      }
+    } else {
+      enemy->Hit(hero_);
+      action = "❌ Неверно. " + enemy->GetName() + " атакует героя (" +
+               to_string(enemy->atk()) + ")";
+      full_history_ += "❌ Неверный ответ! " + enemy->GetName() + " атакует героя!\n";
+      if (!hero_.IsAlive()) {
+        finished_ = true;
+        win_ = false;
+        last_question_.clear();
+        full_history_ += "💀 Герой пал в бою... Игра окончена.\n";
+      }
     }
+
+    last_info_ += action + "\n";
+
+    if (!finished_) {
+      AskNewQuestion();
+    } else if (win_) {
+      last_question_ = "Победа! Все враги повержены.";
+      full_history_ += "🎉 ПОБЕДА! Все драконы повержены! 🎉\n";
+    } else {
+      last_question_ = "Поражение. Герой пал.";
+    }
+  }
+
+  // Геттеры
+  const Hero& hero() const { return hero_; }
+  const string& last_question() const { return last_question_; }
+  const string& last_info() const { return last_info_; }
+  const string& full_history() const { return full_history_; }
+  bool finished() const { return finished_; }
+  bool win() const { return win_; }
+
+ private:
+  Game() = default;
+  ~Game() = default;
+
+  Hero hero_{"Герой", 35, 7};
+  vector<unique_ptr<Enemy>> enemies_;
+  int current_enemy_ = 0;
+  string last_question_;
+  string last_info_;
+  string full_history_;
+  bool finished_ = false;
+  bool win_ = false;
 };
 
-// ========= СЕРВЕР =========
-static string json_escape(const string& s) {
-    string out; out.reserve(s.size() + 8);
-    for (char c : s) {
-        switch (c) {
-            case '\"': out += "\\\""; break;
-            case '\\': out += "\\\\"; break;
-            case '\n': out += "\\n"; break;
-            case '\r': out += "\\r"; break;
-            case '\t': out += "\\t"; break;
-            default: out += c;
-        }
+static string JsonEscape(const string& s) {
+  string result;
+  result.reserve(s.size() + 8);
+  for (char c : s) {
+    switch (c) {
+      case '\"':
+        result += "\\\"";
+        break;
+      case '\\':
+        result += "\\\\";
+        break;
+      case '\n':
+        result += "\\n";
+        break;
+      case '\r':
+        result += "\\r";
+        break;
+      case '\t':
+        result += "\\t";
+        break;
+      default:
+        result += c;
     }
-    return out;
+  }
+  return result;
 }
 
 int main() {
-    Game::instance().reset();
+  Game::GetInstance().Reset();
 
-    httplib::Server svr;
+  httplib::Server server;
 
-    // CORS
-    svr.set_default_headers({
-        {"Access-Control-Allow-Origin", "*"},
-        {"Access-Control-Allow-Headers", "Content-Type"},
-        {"Access-Control-Allow-Methods", "GET,POST,OPTIONS"}
-    });
-    svr.Options(R"(.*)", [](const httplib::Request& req, httplib::Response& res) { res.status = 200; });
+  // CORS headers
+  server.set_default_headers({
+      {"Access-Control-Allow-Origin", "*"},
+      {"Access-Control-Allow-Headers", "Content-Type"},
+      {"Access-Control-Allow-Methods", "GET,POST,OPTIONS"},
+  });
 
-    // Статика (фронт)
-    svr.Get("/", [](const httplib::Request&, httplib::Response& res) {
-        res.set_content("<meta http-equiv='refresh' content='0; url=/index.html'>", "text/html");
-    });
+  server.Options(R"(.*)", [](const httplib::Request& req, httplib::Response& res) {
+    res.status = 200;
+  });
 
-    // Состояние
-    svr.Get("/state", [](const httplib::Request&, httplib::Response& res) {
-        auto& G = Game::instance();
-        auto* e = G.current();
-        string ename = e ? e->name() : string("-");
-        string ecolor = e ? e->color() : string("-");
-        int ehp = e ? e->hp() : 0;
-        int eatk = e ? e->atk() : 0;
-        string body = string("{") +
-            "\"hero\":{\"name\":\"" + json_escape(G.hero.name()) + "\",\"hp\":" + to_string(G.hero.hp()) + ",\"atk\":" + to_string(G.hero.atk()) + ",\"exp\":" + to_string(G.hero.exp()) + "}," +
-            "\"enemy\":{\"name\":\"" + json_escape(ename) + "\",\"color\":\"" + json_escape(ecolor) + "\",\"hp\":" + to_string(ehp) + ",\"atk\":" + to_string(eatk) + "}," +
-            "\"question\":\"" + json_escape(G.last_question) + "\"," +
-            "\"info\":\"" + json_escape(G.last_info) + "\"," +
-            "\"history\":\"" + json_escape(G.full_history) + "\"," + // Полная история
-            "\"finished\":" + (G.finished ? "true" : "false") + "," +
-            "\"win\":" + (G.win ? "true" : "false") +
-        "}";
-        res.set_content(body, "application/json; charset=utf-8");
-    });
+  // Static files
+  server.Get("/", [](const httplib::Request&, httplib::Response& res) {
+    res.set_content("<meta http-equiv='refresh' content='0; url=/index.html'>",
+                    "text/html");
+  });
 
-    // Ответ игрока
-    svr.Post("/answer", [](const httplib::Request& req, httplib::Response& res) {
-        string s = req.body;
-        string key = "\"answer\"";
-        size_t p = s.find(key);
-        string val;
-        if (p != string::npos) {
-            size_t q = s.find(':', p);
-            size_t a = s.find('"', q + 1);
-            size_t b = s.find('"', a + 1);
-            if (a != string::npos && b != string::npos) val = s.substr(a + 1, b - a - 1);
-        }
-        Game::instance().step_answer(val);
-        res.set_content("{\"ok\":true}", "application/json");
-    });
+  // Game state endpoint
+  server.Get("/state", [](const httplib::Request&, httplib::Response& res) {
+    Game& game = Game::GetInstance();
+    Enemy* enemy = game.GetCurrentEnemy();
 
-    svr.Post("/newgame", [](const httplib::Request&, httplib::Response& res) {
-        Game::instance().reset();
-        res.set_content("{\"started\":true}", "application/json");
-    });
+    string enemy_name = enemy ? enemy->GetName() : "-";
+    string enemy_color = enemy ? enemy->GetColor() : "-";
+    int enemy_hp = enemy ? enemy->hp() : 0;
+    int enemy_atk = enemy ? enemy->atk() : 0;
 
-    svr.set_mount_point("/", "./www");
+    string json_body = string("{") +
+        "\"hero\":{\"name\":\"" + JsonEscape(game.hero().name()) +
+        "\",\"hp\":" + to_string(game.hero().hp()) +
+        ",\"atk\":" + to_string(game.hero().atk()) +
+        ",\"exp\":" + to_string(game.hero().exp()) + "}," +
+        "\"enemy\":{\"name\":\"" + JsonEscape(enemy_name) +
+        "\",\"color\":\"" + JsonEscape(enemy_color) +
+        "\",\"hp\":" + to_string(enemy_hp) +
+        ",\"atk\":" + to_string(enemy_atk) + "}," +
+        "\"question\":\"" + JsonEscape(game.last_question()) + "\"," +
+        "\"info\":\"" + JsonEscape(game.last_info()) + "\"," +
+        "\"history\":\"" + JsonEscape(game.full_history()) + "\"," +
+        "\"finished\":" + (game.finished() ? "true" : "false") + "," +
+        "\"win\":" + (game.win() ? "true" : "false") + "}";
 
-    cout << "Server on http://0.0.0.0:8080\n";
-    svr.listen("0.0.0.0", 8080);
-    return 0;
+    res.set_content(json_body, "application/json; charset=utf-8");
+  });
+
+  // Answer endpoint
+  server.Post("/answer", [](const httplib::Request& req, httplib::Response& res) {
+    string body = req.body;
+    string key = "\"answer\"";
+    size_t pos = body.find(key);
+    string answer_value;
+
+    if (pos != string::npos) {
+      size_t colon_pos = body.find(':', pos);
+      size_t quote_start = body.find('"', colon_pos + 1);
+      size_t quote_end = body.find('"', quote_start + 1);
+      if (quote_start != string::npos && quote_end != string::npos) {
+        answer_value = body.substr(quote_start + 1, quote_end - quote_start - 1);
+      }
+    }
+
+    Game::GetInstance().ProcessAnswer(answer_value);
+    res.set_content("{\"ok\":true}", "application/json");
+  });
+
+  // New game endpoint
+  server.Post("/newgame", [](const httplib::Request&, httplib::Response& res) {
+    Game::GetInstance().Reset();
+    res.set_content("{\"started\":true}", "application/json");
+  });
+
+  // Serve static files
+  server.set_mount_point("/", "./www");
+
+  cout << "Server running on http://0.0.0.0:8080\n";
+  server.listen("0.0.0.0", 8080);
+  return 0;
 }
