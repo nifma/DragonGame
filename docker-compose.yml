@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  dragons-app:
+    build: .
+    container_name: dragons-app
+    ports:
+      - "8080:8080"  # Пробрасываем порт 8080 для доступа извне
+    volumes:
+      - ./www:/app/www  # Подключаем локальный каталог www для отдачи статики
+    environment:
+      - PORT=8080  # Указываем порт, на котором будет слушать приложение
+    networks:
+      - dragons-net
+
+networks:
+  dragons-net:
+    driver: bridge  # Используем стандартную мостовую сеть Docker

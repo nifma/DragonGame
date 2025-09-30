@@ -1,0 +1,225 @@
+* { box-sizing: border-box }
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
+    background: #0f1115;
+    color: #e8eef5;
+    overflow-x: hidden;
+}
+h1 { font-size: 36px; text-align: center }
+.container { max-width: 900px; margin: 0 auto; padding: 16px }
+
+/* Карточки персонажей */
+.character-card {
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+    transition: all 0.3s ease;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+.character-card:hover { transform: scale(1.02) }
+.character-img {
+    border-radius: 10px;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* Поле боя */
+.battlefield {
+    background: linear-gradient(135deg, #1a1d24 0%, #2d3748 100%);
+    border-radius: 20px;
+    padding: 30px;
+    border: 2px solid #4a5568;
+}
+.vs-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #e53e3e;
+    text-shadow: 0 0 10px rgba(229, 62, 62, 0.5);
+}
+
+/* Анимации боя */
+@keyframes attack {
+    0% { transform: translateX(0) scale(1); }
+    25% { transform: translateX(20px) scale(1.1); }
+    50% { transform: translateX(0) scale(1); }
+    75% { transform: translateX(-20px) scale(0.9); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes takeDamage {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.1) rotate(5deg); }
+    50% { transform: scale(0.9) rotate(-5deg); }
+    75% { transform: scale(1.05) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.attacking {
+    animation: attack 0.6s ease-in-out;
+}
+
+.taking-damage {
+    animation: takeDamage 0.6s ease-in-out;
+}
+
+/* Поле вопроса */
+.question-box {
+    background: linear-gradient(135deg, #2b6cb0 0%, #4299e1 100%);
+    border: none;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* История боя */
+.history-box {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #1a202c;
+    color: #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #4a5568;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
+}
+
+.history-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.history-box::-webkit-scrollbar-track {
+    background: #2d3748;
+    border-radius: 4px;
+}
+
+.history-box::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+
+.history-box::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
+
+/* Эффекты */
+.celebration-effect, .defeat-effect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+}
+
+.celebration-emoji, .defeat-emoji {
+    position: absolute;
+    animation: floatUp 3s ease-in forwards;
+    font-size: 24px;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.celebration-emoji {
+    animation: floatUp 3s ease-in forwards;
+}
+
+.defeat-emoji {
+    animation: floatDown 3s ease-in forwards;
+}
+
+@keyframes floatDown {
+    0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(-360deg);
+        opacity: 0;
+    }
+}
+
+/* Форма ввода */
+.form-control {
+    border-radius: 10px;
+    background: #0b0e14;
+    color: #e8eef5;
+    border: 2px solid #4a5568;
+    padding: 12px 15px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
+}
+
+.input-group .btn {
+    border-radius: 0 10px 10px 0;
+    padding: 12px 25px;
+}
+
+/* Кнопки */
+button {
+    border-radius: 10px;
+    padding: 12px 25px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+#restart {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .battlefield {
+        padding: 15px;
+    }
+
+    .vs-text {
+        font-size: 1.5rem;
+        margin: 10px 0;
+    }
+
+    .character-card {
+        min-height: 250px;
+    }
+
+    .character-img {
+        height: 150px;
+    }
+
+    .question-box {
+        font-size: 1rem;
+        padding: 15px;
+    }
+}

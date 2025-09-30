@@ -1,50 +1,20 @@
-# Используем базовый образ с Ubuntu
-FROM ubuntu:20.04
+# Минимальный образ с компилятором
+FROM ubuntu:24.04
 
-# Устанавливаем рабочую директорию
-WORKDIR /app
-
-# Устанавливаем переменную окружения для non-interactive
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Настройка таймзоны, чтобы избежать интерактивных запросов
-RUN echo "Europe/Moscow" > /etc/timezone && \
-    apt-get update && \
-    apt-get install -y tzdata && \
-    dpkg-reconfigure -f noninteractive tzdata
-
-# Обновляем репозитории и устанавливаем все зависимости
-RUN apt-get update && \
-    apt-get install -y --fix-missing \
-    build-essential \
-    apache2 \
-    libjsoncpp-dev \
-    libjsoncpp1 \
-    cmake \
-    g++ \
-    curl \
-    && apt-get clean && \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ make curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Копируем исходники проекта в контейнер
-COPY . /app
+WORKDIR /app
+# Забираем single-header HTTP сервер
+RUN curl -L -o httplib.h https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h
 
-# Создаем директорию для CGI-скриптов
-RUN mkdir -p /var/www/html/cgi-bin
+# Копируем исходники
+COPY main.cpp /app/main.cpp
+COPY www /app/www
 
-# Компилируем проект с помощью CMake
-RUN cmake -S . -B /app/build \
-    && cmake --build /app/build \
-    && cp /app/build/game.cgi /var/www/html/cgi-bin/
+# Сборка
+RUN g++ -O2 -std=gnu++17 main.cpp -o app
 
-# Устанавливаем права на выполнение для CGI-скрипта
-RUN chmod +x /var/www/html/cgi-bin/game.cgi
-
-# Конфигурируем Apache для работы с CGI
-COPY .htaccess /var/www/html/.htaccess
-
-# Открываем порты для Apache
-EXPOSE 80
-
-# Запускаем Apache
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+EXPOSE 8080
+CMD ["./app", "-port", "8080"]
