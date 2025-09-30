@@ -50,7 +50,9 @@ async function render() {
             const dragonImageMap = {
                 'Yellow': 'images/yellow-dragon.jpg',
                 'Blue': 'images/blue-dragon.jpg',
-                'Purple': 'images/purple-dragon.jpg'
+                'Purple': 'images/purple-dragon.jpg',
+                'Red': 'images/red-dragon.jpg',
+                'Green': 'images/green-dragon.jpg'
             };
             dragonImg.src = dragonImageMap[s.enemy.color] || 'images/not-yet.jpg';
             lastEnemyColor = s.enemy.color;
