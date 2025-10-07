@@ -1,111 +1,310 @@
-* { box-sizing: border-box }
-body {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif;
-    background: #0f1115;
-    color: #e8eef5;
-    overflow-x: hidden;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-h1 { font-size: 36px; text-align: center }
-.container { max-width: 900px; margin: 0 auto; padding: 16px }
 
-/* Карточки персонажей */
-.character-card {
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
-    transition: all 0.3s ease;
-    min-height: 300px;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Основной layout */
+.layout {
+    display: flex;
+    height: 100vh;
+}
+
+/* Боковая панель */
+.sidebar {
+    width: 350px;
+    background: #1e293b;
+    border-right: 1px solid #334155;
     display: flex;
     flex-direction: column;
 }
-.character-card:hover { transform: scale(1.02) }
-.character-img {
-    border-radius: 10px;
-    height: 200px;
-    object-fit: cover;
-    transition: transform 0.3s ease;
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #334155;
+    background: #1e293b;
+}
+
+.sidebar-header h3 {
+    color: #f8fafc;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.history-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    background: #0f172a;
+    font-family: 'Courier New', monospace;
+}
+
+.history-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-content::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+.history-content::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 3px;
+}
+
+/* Основное содержимое */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background: #0f172a;
+}
+
+/* Заголовок */
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+}
+
+.game-header h1 {
+    color: #f8fafc;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
 }
 
 /* Поле боя */
 .battlefield {
-    background: linear-gradient(135deg, #1a1d24 0%, #2d3748 100%);
-    border-radius: 20px;
-    padding: 30px;
-    border: 2px solid #4a5568;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
+
+.combatants {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    gap: 30px;
+}
+
+.character {
+    flex: 1;
+    max-width: 300px;
+}
+
+.character-card {
+    background: #1e293b;
+    border-radius: 15px;
+    padding: 20px;
+    border: 2px solid #475569;
+    transition: all 0.3s ease;
+}
+
+.character-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px solid #64748b;
+}
+
+.character-info h4 {
+    color: #f8fafc;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+/* Отображение здоровья */
+.health-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.hp-label {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    min-width: 30px;
+}
+
+.health-bar {
+    flex: 1;
+    height: 20px;
+    background: #374151;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #4b5563;
+}
+
+.health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #f59e0b);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+    width: 100%;
+}
+
+.hp-value {
+    color: #f8fafc;
+    font-size: 0.9rem;
+    min-width: 50px;
+    text-align: right;
+}
+
+/* Статистика */
+.stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+}
+
+/* VS разделитель */
+.vs-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+}
+
 .vs-text {
     font-size: 2rem;
     font-weight: bold;
-    color: #e53e3e;
-    text-shadow: 0 0 10px rgba(229, 62, 62, 0.5);
+    color: #ef4444;
+    background: #1e293b;
+    padding: 10px 20px;
+    border-radius: 50%;
+    border: 2px solid #ef4444;
+}
+
+/* Секция вопроса */
+.question-section {
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #475569;
+    text-align: center;
+}
+
+.question-box {
+    font-size: 1.3rem;
+    color: #f8fafc;
+    margin-bottom: 25px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.answer-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #475569;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #f8fafc;
+    font-size: 1rem;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.input-group button {
+    padding: 12px 24px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.input-group button:hover {
+    background: #2563eb;
+}
+
+.vs-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+}
+
+.vs-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+    background: rgba(15, 23, 42, 0.9);
+    padding: 15px 25px;
+    border-radius: 50%;
+    border: 3px solid #ef4444;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
 }
 
 /* Анимации боя */
 @keyframes attack {
-    0% { transform: translateX(0) scale(1); }
-    25% { transform: translateX(20px) scale(1.1); }
-    50% { transform: translateX(0) scale(1); }
-    75% { transform: translateX(-20px) scale(0.9); }
-    100% { transform: translateX(0) scale(1); }
+    0% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(10px);
+    }
+    100% {
+        transform: translateX(0);
+    }
 }
 
 @keyframes takeDamage {
-    0% { transform: scale(1); }
-    25% { transform: scale(1.1) rotate(5deg); }
-    50% { transform: scale(0.9) rotate(-5deg); }
-    75% { transform: scale(1.05) rotate(2deg); }
-    100% { transform: scale(1) rotate(0deg); }
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 .attacking {
-    animation: attack 0.6s ease-in-out;
+    animation: attack 0.4s ease-in-out;
 }
 
 .taking-damage {
-    animation: takeDamage 0.6s ease-in-out;
-}
-
-/* Поле вопроса */
-.question-box {
-    background: linear-gradient(135deg, #2b6cb0 0%, #4299e1 100%);
-    border: none;
-    border-radius: 15px;
-    font-size: 1.2rem;
-    font-weight: 500;
-    text-align: center;
-    padding: 20px;
-    margin-bottom: 20px;
-    color: #ffffff;
-}
-
-/* История боя */
-.history-box {
-    max-height: 300px;
-    overflow-y: auto;
-    background: #1a202c;
-    color: #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid #4a5568;
-    font-family: 'Courier New', monospace;
-    line-height: 1.5;
-}
-
-.history-box::-webkit-scrollbar {
-    width: 8px;
-}
-
-.history-box::-webkit-scrollbar-track {
-    background: #2d3748;
-    border-radius: 4px;
-}
-
-.history-box::-webkit-scrollbar-thumb {
-    background: #4a5568;
-    border-radius: 4px;
-}
-
-.history-box::-webkit-scrollbar-thumb:hover {
-    background: #718096;
+    animation: takeDamage 0.4s ease-in-out;
 }
 
 /* Эффекты */
@@ -122,8 +321,15 @@ h1 { font-size: 36px; text-align: center }
 
 .celebration-emoji, .defeat-emoji {
     position: absolute;
-    animation: floatUp 3s ease-in forwards;
     font-size: 24px;
+}
+
+.celebration-emoji {
+    animation: floatUp 2s ease-in forwards;
+}
+
+.defeat-emoji {
+    animation: floatDown 2s ease-in forwards;
 }
 
 @keyframes floatUp {
@@ -137,14 +343,6 @@ h1 { font-size: 36px; text-align: center }
     }
 }
 
-.celebration-emoji {
-    animation: floatUp 3s ease-in forwards;
-}
-
-.defeat-emoji {
-    animation: floatDown 3s ease-in forwards;
-}
-
 @keyframes floatDown {
     0% {
         transform: translateY(-100px) rotate(0deg);
@@ -156,71 +354,174 @@ h1 { font-size: 36px; text-align: center }
     }
 }
 
-/* Форма ввода */
-.form-control {
-    border-radius: 10px;
-    background: #0b0e14;
-    color: #e8eef5;
-    border: 2px solid #4a5568;
-    padding: 12px 15px;
-    font-size: 1rem;
-}
-
-.form-control:focus {
-    border-color: #4299e1;
-    box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
-}
-
-.input-group .btn {
-    border-radius: 0 10px 10px 0;
-    padding: 12px 25px;
-}
-
-/* Кнопки */
-button {
-    border-radius: 10px;
-    padding: 12px 25px;
-    background: #2563eb;
-    color: white;
-    cursor: pointer;
-    border: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-button:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
-}
-
-#restart {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 100;
-    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-}
-
 /* Адаптивность */
-@media (max-width: 768px) {
-    .battlefield {
-        padding: 15px;
+@media (max-width: 1024px) {
+    .layout {
+        flex-direction: column;
     }
 
-    .vs-text {
-        font-size: 1.5rem;
-        margin: 10px 0;
+    .sidebar {
+        width: 100%;
+        height: 250px;
+        border-right: none;
+        border-bottom: 1px solid #334155;
     }
 
-    .character-card {
-        min-height: 250px;
+    .combatants {
+        gap: 20px;
+    }
+
+    .character {
+        max-width: 250px;
     }
 
     .character-img {
         height: 150px;
     }
 
-    .question-box {
-        font-size: 1rem;
-        padding: 15px;
+    .vs-text {
+        font-size: 1.5rem;
+        padding: 8px 16px;
     }
 }
+
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 2rem;
+    }
+
+    .question-box {
+        font-size: 1.1rem;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .health-display {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .hp-value {
+        text-align: center;
+    }
+}
+
+/* Партиклы для атаки */
+.particle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 100;
+    font-size: 20px;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--translate-x), var(--translate-y)) rotate(360deg) scale(0);
+        opacity: 0;
+    }
+}
+
+@keyframes particleAttack {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(var(--translate-x), var(--translate-y)) scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(calc(var(--translate-x) * 1.5), calc(var(--translate-y) * 1.5)) scale(0);
+        opacity: 0;
+    }
+}
+
+.attack-particle {
+    animation: particleAttack 0.8s ease-out forwards;
+}
+
+.damage-particle {
+    animation: particleFloat 1s ease-out forwards;
+}
+
+/* Анимации боя */
+@keyframes attack {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    25% {
+        transform: translateX(20px) scale(1.1);
+    }
+    50% {
+        transform: translateX(0) scale(1);
+    }
+    75% {
+        transform: translateX(-10px) scale(0.95);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes takeDamage {
+    0% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1) rotate(3deg);
+    }
+    50% {
+        transform: scale(0.9) rotate(-3deg);
+    }
+    75% {
+        transform: scale(1.05) rotate(1deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+@keyframes damageGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.attacking {
+    animation: attack 0.6s ease-in-out;
+}
+
+.taking-damage {
+    animation: takeDamage 0.6s ease-in-out;
+}
+
+.damage-glow {
+    animation: damageGlow 0.8s ease-in-out;
+}
+
+.hero-card {
+    border-left: 4px solid #3b82f6;
+}
+
+.enemy-card {
+    border-left: 4px solid #ef4444;
+}
+
+.character-card {
+    /* существующие стили остаются */
+    position: relative;
+    overflow: hidden;
+}
+

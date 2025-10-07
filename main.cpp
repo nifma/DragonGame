@@ -169,6 +169,81 @@ class RedDragon : public Dragon {
   }
 };
 
+class Goblin : public Enemy {
+ public:
+  Goblin(string type, int hp = 12, int atk = 4)
+      : Enemy(hp, atk), type_(std::move(type)) {}
+
+  string GetColor() const override { return "Green"; }
+  string GetName() const override { return type_ + " Goblin"; }
+
+ protected:
+  string type_;
+  mutable int a_, b_, c_, answer_;
+};
+
+class MathGoblin : public Goblin {
+ public:
+  MathGoblin() : Goblin("Math") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 10 + 1;
+    b_ = rand() % 10 + 1;
+    answer_ = a_ + b_;
+    return "Сколько будет " + to_string(a_) + " + " + to_string(b_) + "?";
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
+    }
+  }
+};
+
+class RiddleGoblin : public Goblin {
+ public:
+  RiddleGoblin() : Goblin("Riddle") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 10 + 1;
+    b_ = rand() % 10 + 1;
+    answer_ = a_ * b_;
+    return "У меня " + to_string(a_) + " мешков, в каждом " + to_string(b_) +
+           " золотых. Сколько всего золотых?";
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
+    }
+  }
+};
+
+class TrickGoblin : public Goblin {
+ public:
+  TrickGoblin() : Goblin("Trick") {}
+
+  string GenerateQuestion() override {
+    a_ = rand() % 8 + 3;
+    b_ = rand() % 5 + 2;
+    answer_ = a_ - b_;
+    return "Было " + to_string(a_) + " печенек, я съел " + to_string(b_) +
+           ". Сколько осталось?";
+  }
+
+  bool CheckAnswer(const string& input) const override {
+    try {
+      return stoi(input) == answer_;
+    } catch (...) {
+      return false;
+    }
+  }
+};
+
 class Game {
  public:
   static Game& GetInstance() {
@@ -186,22 +261,27 @@ class Game {
     last_info_.clear();
     full_history_.clear();
 
-    vector<unique_ptr<Enemy>> all_dragons;
-    all_dragons.push_back(unique_ptr<Enemy>(new YellowDragon()));
-    all_dragons.push_back(unique_ptr<Enemy>(new BlueDragon()));
-    all_dragons.push_back(unique_ptr<Enemy>(new PurpleDragon()));
-    all_dragons.push_back(unique_ptr<Enemy>(new GreenDragon()));
-    all_dragons.push_back(unique_ptr<Enemy>(new RedDragon()));
+    vector<unique_ptr<Enemy>> all_enemies;
+    // Добавляем драконов
+    all_enemies.push_back(unique_ptr<Enemy>(new YellowDragon()));
+    all_enemies.push_back(unique_ptr<Enemy>(new BlueDragon()));
+    all_enemies.push_back(unique_ptr<Enemy>(new PurpleDragon()));
+    all_enemies.push_back(unique_ptr<Enemy>(new GreenDragon()));
+    all_enemies.push_back(unique_ptr<Enemy>(new RedDragon()));
+    // Добавляем гоблинов
+    all_enemies.push_back(unique_ptr<Enemy>(new MathGoblin()));
+    all_enemies.push_back(unique_ptr<Enemy>(new RiddleGoblin()));
+    all_enemies.push_back(unique_ptr<Enemy>(new TrickGoblin()));
 
-    // Перемешиваем драконов в случайном порядке
-    for (int i = all_dragons.size() - 1; i > 0; i--) {
+    // Перемешиваем врагов в случайном порядке
+    for (int i = all_enemies.size() - 1; i > 0; i--) {
       int j = rand() % (i + 1);
-      swap(all_dragons[i], all_dragons[j]);
+      swap(all_enemies[i], all_enemies[j]);
     }
 
-    // Берем первых 3 драконов для игры
-    for (int i = 0; i < min(3, static_cast<int>(all_dragons.size())); i++) {
-      enemies_.push_back(move(all_dragons[i]));
+    // Берем первых 4 врагов для игры
+    for (int i = 0; i < min(4, static_cast<int>(all_enemies.size())); i++) {
+      enemies_.push_back(move(all_enemies[i]));
     }
 
     AskNewQuestion();
@@ -242,7 +322,7 @@ class Game {
       hero_.Hit(*enemy);
       hero_.AddExp(5);
       action = "✅ Верно! Герой атакует (" + to_string(hero_.atk()) + ")";
-      full_history_ += "✅ Герой отвечает верно и атакует дракона!\n";
+      full_history_ += "✅ Герой отвечает верно и атакует врага!\n";
       if (!enemy->IsAlive()) {
         action += " и побеждает врага!";
         full_history_ += "🎯 Герой побеждает " + enemy->GetName() + "!\n";
@@ -261,13 +341,13 @@ class Game {
       }
     }
 
-    last_info_ += action + "\n";
+    last_info_ = action + "\n";
 
     if (!finished_) {
       AskNewQuestion();
     } else if (win_) {
       last_question_ = "Победа! Все враги повержены.";
-      full_history_ += "🎉 ПОБЕДА! Все драконы повержены! 🎉\n";
+      full_history_ += "🎉 ПОБЕДА! Все враги повержены! 🎉\n";
     } else {
       last_question_ = "Поражение. Герой пал.";
     }

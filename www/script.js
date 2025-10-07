@@ -20,8 +20,13 @@ const dragonCard = document.getElementById("dragonCard");
 const heroImg = document.getElementById("heroImg");
 const dragonImg = document.getElementById("dragonImg");
 const dragonName = document.getElementById("dragonName");
-const dragonStatus = document.getElementById("dragonStatus");
-const heroStatus = document.getElementById("heroStatus");
+const heroHealthFill = document.getElementById("heroHealthFill");
+const enemyHealthFill = document.getElementById("enemyHealthFill");
+const heroHpValue = document.getElementById("heroHpValue");
+const enemyHpValue = document.getElementById("enemyHpValue");
+const heroAtk = document.getElementById("heroAtk");
+const heroExp = document.getElementById("heroExp");
+const enemyAtk = document.getElementById("enemyAtk");
 const celebrationEffect = document.getElementById("celebration");
 const defeatEffect = document.getElementById("defeat");
 
@@ -33,44 +38,60 @@ async function render() {
 
     // Обновляем историю
     historyDiv.innerHTML = s.history ? s.history.replace(/\n/g, '<br>') : "";
-
-    // Прокручиваем историю вниз
     historyDiv.scrollTop = historyDiv.scrollHeight;
 
-    // Обновляем статус героя
-    heroStatus.textContent = `❤️ Здоровье: ${s.hero.hp} | ⚔️ Атака: ${s.hero.atk} | ⭐ Опыт: ${s.hero.exp}`;
+    // Обновляем героя
+    const heroMaxHp = 35;
+    const heroHpPercent = (s.hero.hp / heroMaxHp) * 100;
+    heroHealthFill.style.width = `${heroHpPercent}%`;
+    heroHpValue.textContent = `${s.hero.hp}/${heroMaxHp}`;
+    heroAtk.textContent = s.hero.atk;
+    heroExp.textContent = s.hero.exp;
 
-    // Обновляем текущего дракона
+    // Обновляем врага
     if (s.enemy.name !== "-") {
         dragonName.textContent = s.enemy.name;
-        dragonStatus.textContent = `❤️ Здоровье: ${s.enemy.hp} | ⚔️ Атака: ${s.enemy.atk}`;
 
-        // Устанавливаем изображение дракона в зависимости от цвета
+        // Определяем максимальное HP врага
+        const enemyMaxHp = s.enemy.name.includes('Dragon') ? 15 : 12;
+        const enemyHpPercent = (s.enemy.hp / enemyMaxHp) * 100;
+        enemyHealthFill.style.width = `${enemyHpPercent}%`;
+        enemyHpValue.textContent = `${s.enemy.hp}/${enemyMaxHp}`;
+        enemyAtk.textContent = s.enemy.atk;
+
+        // Устанавливаем изображение врага
         if (s.enemy.color !== lastEnemyColor) {
-            const dragonImageMap = {
+            const enemyImageMap = {
                 'Yellow': 'images/yellow-dragon.jpg',
                 'Blue': 'images/blue-dragon.jpg',
                 'Purple': 'images/purple-dragon.jpg',
                 'Red': 'images/red-dragon.jpg',
                 'Green': 'images/green-dragon.jpg'
             };
-            dragonImg.src = dragonImageMap[s.enemy.color] || 'images/not-yet.jpg';
+
+            if (s.enemy.name.includes('Goblin')) {
+                dragonImg.src = 'images/goblin.jpg';
+            } else {
+                dragonImg.src = enemyImageMap[s.enemy.color] || 'images/not-yet.jpg';
+            }
             lastEnemyColor = s.enemy.color;
         }
 
-        // Показываем карточку дракона
         dragonCard.style.display = 'block';
     } else {
-        // Скрываем карточку дракона, если врага нет
         dragonCard.style.display = 'none';
+        enemyHealthFill.style.width = '0%';
+        enemyHpValue.textContent = '0/0';
     }
 
     // Анимации при атаке
     if (s.info && s.info.includes('атакует')) {
-        if (s.info.includes('Герой атакует')) {
-            animateAttack(heroCard, dragonCard);
-        } else if (s.info.includes('атакует героя')) {
-            animateAttack(dragonCard, heroCard);
+        if (s.info.includes('атакует героя')) {
+            // Враг атакует героя
+            animateAttack(dragonCard, heroCard, 'enemy');
+        } else {
+            // Герой атакует врага
+            animateAttack(heroCard, dragonCard, 'hero');
         }
     }
 
@@ -92,85 +113,193 @@ async function render() {
 }
 
 // Анимация атаки
-function animateAttack(attacker, target) {
-    // Сбрасываем предыдущие анимации
+// Функция создания партиклов атаки
+function createAttackParticles(attacker, target, type) {
+    const attackerRect = attacker.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+
+    const attackEmojis = type === 'hero' ?
+        ['⚔️', '✨', '🌟', '💫', '🔥'] :
+        ['🔥', '💀', '☠️', '⚡', '🌪️'];
+
+    const particleColor = type === 'hero' ? '#3b82f6' : '#ef4444';
+
+    // Партиклы летящие от атакующего к цели
+    for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle attack-particle';
+        particle.textContent = attackEmojis[Math.floor(Math.random() * attackEmojis.length)];
+        particle.style.color = particleColor;
+        particle.style.fontSize = (Math.random() * 16 + 14) + 'px';
+
+        // Начальная позиция от атакующего
+        const startX = attackerRect.left + attackerRect.width / 2;
+        const startY = attackerRect.top + attackerRect.height / 2;
+
+        // Конечная позиция у цели
+        const endX = targetRect.left + targetRect.width / 2;
+        const endY = targetRect.top + targetRect.height / 2;
+
+        particle.style.left = startX + 'px';
+        particle.style.top = startY + 'px';
+
+        const translateX = endX - startX;
+        const translateY = endY - startY;
+
+        particle.style.setProperty('--translate-x', translateX + 'px');
+        particle.style.setProperty('--translate-y', translateY + 'px');
+
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+            if (particle.parentNode) {
+                particle.parentNode.removeChild(particle);
+            }
+        }, 800);
+    }
+}
+
+// Функция создания партиклов урона
+function createDamageParticles(target, type) {
+    const rect = target.getBoundingClientRect();
+    const damageEmojis = type === 'hero' ?
+        ['💔', '🩸', '😵', '💢'] :
+        ['💥', '🔥', '⚡', '💢', '❌'];
+
+    const particleColor = type === 'hero' ? '#ef4444' : '#f59e0b';
+
+    for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle damage-particle';
+        particle.textContent = damageEmojis[Math.floor(Math.random() * damageEmojis.length)];
+        particle.style.color = particleColor;
+        particle.style.fontSize = (Math.random() * 16 + 14) + 'px';
+
+        // Случайная позиция внутри карточки
+        const posX = rect.left + Math.random() * rect.width;
+        const posY = rect.top + Math.random() * rect.height;
+
+        particle.style.left = posX + 'px';
+        particle.style.top = posY + 'px';
+
+        // Случайное направление разлета
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 60 + 30;
+        const translateX = Math.cos(angle) * distance;
+        const translateY = Math.sin(angle) * distance;
+
+        particle.style.setProperty('--translate-x', translateX + 'px');
+        particle.style.setProperty('--translate-y', translateY + 'px');
+
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+            if (particle.parentNode) {
+                particle.parentNode.removeChild(particle);
+            }
+        }, 1000);
+    }
+}
+
+// Обновленная функция анимации атаки
+function animateAttack(attacker, target, type) {
     attacker.classList.remove('attacking');
     target.classList.remove('taking-damage');
+    target.classList.remove('damage-glow');
 
-    // Принудительное обновление DOM
     void attacker.offsetWidth;
     void target.offsetWidth;
 
-    // Добавляем анимации
     attacker.classList.add('attacking');
     target.classList.add('taking-damage');
+    target.classList.add('damage-glow');
 
-    // Убираем анимации после завершения
+    // Создаем партиклы атаки
+    createAttackParticles(attacker, target, type);
+
+    // Создаем партиклы урона на цели
+    setTimeout(() => {
+        createDamageParticles(target, type === 'hero' ? 'enemy' : 'hero');
+    }, 300);
+
     setTimeout(() => {
         attacker.classList.remove('attacking');
         target.classList.remove('taking-damage');
+        target.classList.remove('damage-glow');
     }, 600);
 }
 
-// Показать праздничный эффект
+// Эффект победы
 function showCelebration() {
-    celebrationEffect.innerHTML = '';
     celebrationEffect.style.display = 'block';
+    const emojis = ['🎉', '🎊', '⭐', '🏆', '👑'];
 
-    const emojis = ['🎉', '🎊', '⭐', '🏆', '👑', '🎈', '✨'];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 30; i++) {
         const emoji = document.createElement('div');
         emoji.className = 'celebration-emoji';
         emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
         emoji.style.left = Math.random() * 100 + 'vw';
-        emoji.style.animationDelay = Math.random() * 2 + 's';
-        emoji.style.fontSize = (Math.random() * 20 + 20) + 'px';
+        emoji.style.animationDelay = Math.random() * 1 + 's';
         celebrationEffect.appendChild(emoji);
+
+        setTimeout(() => {
+            if (emoji.parentNode) {
+                emoji.parentNode.removeChild(emoji);
+            }
+        }, 2000);
     }
 
     setTimeout(() => {
         celebrationEffect.style.display = 'none';
         celebrationEffect.innerHTML = '';
-    }, 3000);
+    }, 2000);
 }
 
-// Показать эффект поражения
+// Эффект поражения
 function showDefeat() {
-    defeatEffect.innerHTML = '';
     defeatEffect.style.display = 'block';
+    const emojis = ['💀', '😵', '💔', '⚰️'];
 
-    const emojis = ['💀', '😵', '⚰️', '🪦', '☠️'];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 20; i++) {
         const emoji = document.createElement('div');
         emoji.className = 'defeat-emoji';
         emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
         emoji.style.left = Math.random() * 100 + 'vw';
-        emoji.style.animationDelay = Math.random() * 2 + 's';
-        emoji.style.fontSize = (Math.random() * 15 + 15) + 'px';
+        emoji.style.animationDelay = Math.random() * 0.5 + 's';
         defeatEffect.appendChild(emoji);
+
+        setTimeout(() => {
+            if (emoji.parentNode) {
+                emoji.parentNode.removeChild(emoji);
+            }
+        }, 2000);
     }
 
     setTimeout(() => {
         defeatEffect.style.display = 'none';
         defeatEffect.innerHTML = '';
-    }, 3000);
+    }, 2000);
 }
 
+// Обработчики событий
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const val = answer.value.trim();
-    if (!val) return;
-    await sendAnswer(val);
+    const ans = answer.value.trim();
+    if (!ans) return;
+
+    await sendAnswer(ans);
     answer.value = "";
     await render();
 });
 
 restart.addEventListener("click", async () => {
     await newGame();
+    await render();
     celebrationEffect.style.display = 'none';
     defeatEffect.style.display = 'none';
-    await render();
+    celebrationEffect.innerHTML = '';
+    defeatEffect.innerHTML = '';
 });
 
-// Запускаем рендер при загрузке
+// Запуск игры
 render();
