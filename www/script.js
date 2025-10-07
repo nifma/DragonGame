@@ -32,86 +32,6 @@ const defeatEffect = document.getElementById("defeat");
 
 let lastEnemyColor = '';
 
-async function render() {
-    const s = await getState();
-    questionDiv.textContent = s.question || "";
-
-    // Обновляем историю
-    historyDiv.innerHTML = s.history ? s.history.replace(/\n/g, '<br>') : "";
-    historyDiv.scrollTop = historyDiv.scrollHeight;
-
-    // Обновляем героя
-    const heroMaxHp = 35;
-    const heroHpPercent = (s.hero.hp / heroMaxHp) * 100;
-    heroHealthFill.style.width = `${heroHpPercent}%`;
-    heroHpValue.textContent = `${s.hero.hp}/${heroMaxHp}`;
-    heroAtk.textContent = s.hero.atk;
-    heroExp.textContent = s.hero.exp;
-
-    // Обновляем врага
-    if (s.enemy.name !== "-") {
-        dragonName.textContent = s.enemy.name;
-
-        // Определяем максимальное HP врага
-        const enemyMaxHp = s.enemy.name.includes('Dragon') ? 15 : 12;
-        const enemyHpPercent = (s.enemy.hp / enemyMaxHp) * 100;
-        enemyHealthFill.style.width = `${enemyHpPercent}%`;
-        enemyHpValue.textContent = `${s.enemy.hp}/${enemyMaxHp}`;
-        enemyAtk.textContent = s.enemy.atk;
-
-        // Устанавливаем изображение врага
-        if (s.enemy.color !== lastEnemyColor) {
-            const enemyImageMap = {
-                'Yellow': 'images/yellow-dragon.jpg',
-                'Blue': 'images/blue-dragon.jpg',
-                'Purple': 'images/purple-dragon.jpg',
-                'Red': 'images/red-dragon.jpg',
-                'Green': 'images/green-dragon.jpg'
-            };
-
-            if (s.enemy.name.includes('Goblin')) {
-                dragonImg.src = 'images/goblin.jpg';
-            } else {
-                dragonImg.src = enemyImageMap[s.enemy.color] || 'images/not-yet.jpg';
-            }
-            lastEnemyColor = s.enemy.color;
-        }
-
-        dragonCard.style.display = 'block';
-    } else {
-        dragonCard.style.display = 'none';
-        enemyHealthFill.style.width = '0%';
-        enemyHpValue.textContent = '0/0';
-    }
-
-    // Анимации при атаке
-    if (s.info && s.info.includes('атакует')) {
-        if (s.info.includes('атакует героя')) {
-            // Враг атакует героя
-            animateAttack(dragonCard, heroCard, 'enemy');
-        } else {
-            // Герой атакует врага
-            animateAttack(heroCard, dragonCard, 'hero');
-        }
-    }
-
-    // Обработка окончания игры
-    if (s.finished) {
-        answer.disabled = true;
-        form.querySelector("button").disabled = true;
-
-        if (s.win) {
-            showCelebration();
-        } else {
-            showDefeat();
-        }
-    } else {
-        answer.disabled = false;
-        form.querySelector("button").disabled = false;
-        answer.focus();
-    }
-}
-
 // Анимация атаки
 // Функция создания партиклов атаки
 function createAttackParticles(attacker, target, type) {
@@ -202,6 +122,7 @@ function createDamageParticles(target, type) {
 }
 
 // Обновленная функция анимации атаки
+// Обновленная функция анимации атаки
 function animateAttack(attacker, target, type) {
     attacker.classList.remove('attacking');
     target.classList.remove('taking-damage');
@@ -220,6 +141,15 @@ function animateAttack(attacker, target, type) {
     // Создаем партиклы урона на цели
     setTimeout(() => {
         createDamageParticles(target, type === 'hero' ? 'enemy' : 'hero');
+
+        // Проверяем, умер ли враг после атаки героя
+        if (type === 'hero') {
+            const currentEnemy = dragonCard.querySelector('.character-info h4').textContent;
+            if (currentEnemy !== "-" && !dragonCard.classList.contains('dragon-dying')) {
+                // Проверяем HP врага через состояние игры
+                checkEnemyDeath();
+            }
+        }
     }, 300);
 
     setTimeout(() => {
@@ -229,6 +159,127 @@ function animateAttack(attacker, target, type) {
     }, 600);
 }
 
+// Функция проверки смерти врага
+async function checkEnemyDeath() {
+    const s = await getState();
+
+    if (s.enemy.hp <= 0 && s.enemy.name !== "-") {
+        // Запускаем анимацию смерти дракона
+        animateDragonDeath().then(() => {
+            // После завершения анимации смерти, показываем нового врага
+            setTimeout(() => {
+                animateDragonSpawn();
+            }, 200);
+        });
+    }
+}
+
+// Анимация смерти дракона
+function animateDragonDeath() {
+    return new Promise((resolve) => {
+        dragonCard.classList.add('dragon-dying');
+
+        setTimeout(() => {
+            dragonCard.classList.remove('dragon-dying');
+            resolve();
+        }, 1000);
+    });
+}
+
+// Анимация появления нового дракона
+function animateDragonSpawn() {
+    dragonCard.classList.add('dragon-spawning');
+
+    setTimeout(() => {
+        dragonCard.classList.remove('dragon-spawning');
+    }, 1000);
+}
+
+// Обновите функцию render для обработки появления нового врага
+async function render() {
+    const s = await getState();
+    questionDiv.textContent = s.question || "";
+
+    // Обновляем историю
+    historyDiv.innerHTML = s.history ? s.history.replace(/\n/g, '<br>') : "";
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+
+    // Обновляем героя
+    const heroMaxHp = 35;
+    const heroHpPercent = (s.hero.hp / heroMaxHp) * 100;
+    heroHealthFill.style.width = `${heroHpPercent}%`;
+    heroHpValue.textContent = `${s.hero.hp}/${heroMaxHp}`;
+    heroAtk.textContent = s.hero.atk;
+    heroExp.textContent = s.hero.exp;
+
+    // Обновляем врага
+    if (s.enemy.name !== "-") {
+        // Если враг появился, и у него полное HP, запускаем анимацию появления
+        const enemyMaxHp = s.enemy.name.includes('Dragon') ? 15 : 12;
+        if (s.enemy.hp === enemyMaxHp && !dragonCard.classList.contains('dragon-spawning')) {
+            animateDragonSpawn();
+        }
+
+        dragonName.textContent = s.enemy.name;
+
+        // Определяем максимальное HP врага
+        const enemyHpPercent = (s.enemy.hp / enemyMaxHp) * 100;
+        enemyHealthFill.style.width = `${enemyHpPercent}%`;
+        enemyHpValue.textContent = `${s.enemy.hp}/${enemyMaxHp}`;
+        enemyAtk.textContent = s.enemy.atk;
+
+        // Устанавливаем изображение врага
+        if (s.enemy.color !== lastEnemyColor) {
+            const enemyImageMap = {
+                'Yellow': 'images/yellow-dragon.jpg',
+                'Blue': 'images/blue-dragon.jpg',
+                'Purple': 'images/purple-dragon.jpg',
+                'Red': 'images/red-dragon.jpg',
+                'Green': 'images/green-dragon.jpg'
+            };
+
+            if (s.enemy.name.includes('Goblin')) {
+                dragonImg.src = 'images/goblin.jpg';
+            } else {
+                dragonImg.src = enemyImageMap[s.enemy.color] || 'images/not-yet.jpg';
+            }
+            lastEnemyColor = s.enemy.color;
+        }
+
+        dragonCard.style.display = 'block';
+    } else {
+        dragonCard.style.display = 'none';
+        enemyHealthFill.style.width = '0%';
+        enemyHpValue.textContent = '0/0';
+    }
+
+    // Анимации при атаке
+    if (s.info && s.info.includes('атакует')) {
+        if (s.info.includes('атакует героя')) {
+            // Враг атакует героя
+            animateAttack(dragonCard, heroCard, 'enemy');
+        } else {
+            // Герой атакует врага
+            animateAttack(heroCard, dragonCard, 'hero');
+        }
+    }
+
+    // Обработка окончания игры
+    if (s.finished) {
+        answer.disabled = true;
+        form.querySelector("button").disabled = true;
+
+        if (s.win) {
+            showCelebration();
+        } else {
+            showDefeat();
+        }
+    } else {
+        answer.disabled = false;
+        form.querySelector("button").disabled = false;
+        answer.focus();
+    }
+}
 // Эффект победы
 function showCelebration() {
     celebrationEffect.style.display = 'block';
@@ -294,12 +345,15 @@ form.addEventListener("submit", async (e) => {
 
 restart.addEventListener("click", async () => {
     await newGame();
+
+    // Сброс анимационных классов
+    dragonCard.classList.remove('dragon-dying', 'dragon-spawning');
+
     await render();
     celebrationEffect.style.display = 'none';
     defeatEffect.style.display = 'none';
     celebrationEffect.innerHTML = '';
     defeatEffect.innerHTML = '';
 });
-
 // Запуск игры
 render();

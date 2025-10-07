@@ -525,3 +525,43 @@ body {
     overflow: hidden;
 }
 
+/* Анимация смерти дракона */
+@keyframes dragonDeath {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.5) rotate(360deg);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(0.01) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.dragon-dying {
+    animation: dragonDeath 1.2s ease-in forwards;
+    pointer-events: none;
+}
+
+/* Анимация появления нового дракона */
+@keyframes dragonSpawn {
+    0% {
+        transform: scale(0.01) rotate(-720deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(0.5) rotate(-360deg);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.dragon-spawning {
+    animation: dragonSpawn 1.2s ease-out;
+}
