@@ -123,55 +123,52 @@ function createDamageParticles(target, type) {
 
 // Обновленная функция анимации атаки
 // Обновленная функция анимации атаки
-function animateAttack(attacker, target, type) {
+async function animateAttack(attacker, target, type) {
     attacker.classList.remove('attacking');
-    target.classList.remove('taking-damage');
-    target.classList.remove('damage-glow');
-
+    target.classList.remove('taking-damage', 'damage-glow');
     void attacker.offsetWidth;
     void target.offsetWidth;
 
     attacker.classList.add('attacking');
-    target.classList.add('taking-damage');
-    target.classList.add('damage-glow');
+    target.classList.add('taking-damage', 'damage-glow');
 
-    // Создаем партиклы атаки
+    // 🌀 Снаряд
     createAttackParticles(attacker, target, type);
 
-    // Создаем партиклы урона на цели
+    // 💥 Партиклы урона через 0.3с
     setTimeout(() => {
         createDamageParticles(target, type === 'hero' ? 'enemy' : 'hero');
-
-        // Проверяем, умер ли враг после атаки героя
-        if (type === 'hero') {
-            const currentEnemy = dragonCard.querySelector('.character-info h4').textContent;
-            if (currentEnemy !== "-" && !dragonCard.classList.contains('dragon-dying')) {
-                // Проверяем HP врага через состояние игры
-                checkEnemyDeath();
-            }
-        }
     }, 300);
 
+    if (type === 'hero') {
+        // ждём 0.8с — пока снаряд долетит
+        await new Promise(r => setTimeout(r, 800));
+
+        // проверяем текущее состояние до обновления
+        const s = await getState();
+        if (s.enemy.hp <= 0) {
+            // ☠️ проигрываем смерть
+            await animateDragonDeath();
+
+            // 💥 партиклы смерти
+            createDamageParticles(dragonCard, 'enemy');
+
+            // пауза
+            await new Promise(r => setTimeout(r, 400));
+
+            // теперь обновляем состояние
+            await render();
+
+            // ✨ появление нового
+            await animateDragonSpawn();
+        }
+    }
+
+    // снимаем временные классы
     setTimeout(() => {
         attacker.classList.remove('attacking');
-        target.classList.remove('taking-damage');
-        target.classList.remove('damage-glow');
-    }, 600);
-}
-
-// Функция проверки смерти врага
-async function checkEnemyDeath() {
-    const s = await getState();
-
-    if (s.enemy.hp <= 0 && s.enemy.name !== "-") {
-        // Запускаем анимацию смерти дракона
-        animateDragonDeath().then(() => {
-            // После завершения анимации смерти, показываем нового врага
-            setTimeout(() => {
-                animateDragonSpawn();
-            }, 200);
-        });
-    }
+        target.classList.remove('taking-damage', 'damage-glow');
+    }, 1000);
 }
 
 // Анимация смерти дракона
@@ -188,11 +185,14 @@ function animateDragonDeath() {
 
 // Анимация появления нового дракона
 function animateDragonSpawn() {
-    dragonCard.classList.add('dragon-spawning');
-
-    setTimeout(() => {
-        dragonCard.classList.remove('dragon-spawning');
-    }, 1000);
+    return new Promise((resolve) => {
+        dragonCard.classList.remove('dragon-dying');
+        dragonCard.classList.add('dragon-spawning');
+        setTimeout(() => {
+            dragonCard.classList.remove('dragon-spawning');
+            resolve();
+        }, 1200);
+    });
 }
 
 // Обновите функцию render для обработки появления нового врага
@@ -216,13 +216,15 @@ async function render() {
     if (s.enemy.name !== "-") {
         // Если враг появился, и у него полное HP, запускаем анимацию появления
         const enemyMaxHp = s.enemy.name.includes('Dragon') ? 15 : 12;
-        if (s.enemy.hp === enemyMaxHp && !dragonCard.classList.contains('dragon-spawning')) {
+
+        // Проверяем, появился ли новый враг (по имени или цвету)
+        if ((s.enemy.name !== dragonName.textContent || s.enemy.color !== lastEnemyColor)
+            && !dragonCard.classList.contains('dragon-spawning')) {
             animateDragonSpawn();
         }
 
         dragonName.textContent = s.enemy.name;
 
-        // Определяем максимальное HP врага
         const enemyHpPercent = (s.enemy.hp / enemyMaxHp) * 100;
         enemyHealthFill.style.width = `${enemyHpPercent}%`;
         enemyHpValue.textContent = `${s.enemy.hp}/${enemyMaxHp}`;
@@ -343,7 +345,7 @@ form.addEventListener("submit", async (e) => {
     await render();
 });
 
-restart.addEventListener("click", async () => {
+async function startNewGame() {
     await newGame();
 
     // Сброс анимационных классов
@@ -354,6 +356,10 @@ restart.addEventListener("click", async () => {
     defeatEffect.style.display = 'none';
     celebrationEffect.innerHTML = '';
     defeatEffect.innerHTML = '';
+}
+
+restart.addEventListener("click", async () => {
+    await startNewGame();
 });
 // Запуск игры
-render();
+startNewGame();
